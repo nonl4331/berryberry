@@ -17,7 +17,7 @@ const START_ARTICLE: &str = r#"<!doctype html>
 <head>
 <link rel="icon" href="data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA=">
 <link href=" https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css " rel="stylesheet">
-<meta charset="utf-8"/><style>:root{font-family: Roboto;font-weight: 400;} .math-inline{vertical-align: middle;overflow: visible} .math{overflow: visible; width: 100%}</style>
+<meta charset="utf-8"/><style>:root{font-family: Roboto;font-weight: 350;font-size: 1.5em} .math-inline{vertical-align: middle;overflow: visible} .math{overflow: visible; width: 100%} img{width:100%}</style>
 <meta name="viewport" content="width=device-width"/>
 <title>Home</title>
 </head>
@@ -205,9 +205,13 @@ fn start_tag(tagstack: &mut Vec<OurTag>, tag: Tag, output: &mut String) {
             tagstack.push(OurTag::Code);
             *output += &format!("<pre><code class=\"lang-{lang}\">");
         }
+        Tag::Image { dest_url, .. } => {
+            *output += &format!("<img src=\"{}\">", dest_url.into_string());
+        }
         _ => {}
     }
 }
+
 fn end_tag(tagstack: &mut Vec<OurTag>, tag: TagEnd, output: &mut String) {
     match tag {
         TagEnd::Heading(HeadingLevel::H1) => {
@@ -239,31 +243,11 @@ fn main() {
     let articles = std::fs::read_dir("articles/").unwrap();
     for article in articles {
         let Ok(article) = article else { continue };
-        let article_md = std::fs::read_to_string(article.path()).unwrap();
-        let parser = Parser::new(&article_md);
-        let mut tagstack = Vec::new();
-        for event in parser {
-            match event {
-                Event::Start(Tag::Heading {
-                    level: HeadingLevel::H1,
-                    ..
-                }) => tagstack.push(OurTag::H1),
-                Event::End(TagEnd::Heading(HeadingLevel::H1)) => {
-                    assert_eq!(tagstack.pop(), Some(OurTag::H1))
-                }
-                _ => {}
-            }
-        }
         std::fs::write(
             format!(
                 "output/{}.html",
                 article.path().file_stem().unwrap().to_string_lossy()
             ),
-            // minification breaks code blocks
-            /*minify_html::minify(
-                parse_article(&article.path().to_string_lossy()).as_bytes(),
-                &minify_html::Cfg::default(),
-            ),*/
             parse_article(&article.path().to_string_lossy()),
         )
         .unwrap();
