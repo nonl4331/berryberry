@@ -14,18 +14,102 @@ const CACHE_MATH: bool = false;
 
 const START_ARTICLE: &str = r#"<!doctype html>
 <html lang="en-AU">
+
 <head>
-<link rel="icon" href="data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA=">
-<link href=" https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css " rel="stylesheet">
-<meta charset="utf-8"/><style>:root{font-family: Roboto;font-weight: 350;font-size: 1.5em} .math-inline{vertical-align: middle;overflow: visible} .math{overflow: visible; width: 100%} img{width:100%}</style>
-<meta name="viewport" content="width=device-width"/>
-<title>Home</title>
+	<link rel="icon" href="data:image/gif;base64,R0lGODlhAQABAAAAACwAAAAAAQABAAA=">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+<!-- and it's easy to individually load additional languages -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>
+
+<script>hljs.highlightAll();</script>
+	<meta charset="utf-8" />
+	<style>
+		:root {
+			font: 1.15rem -apple-system, BlinkMacSystemFont, avenir next, avenir, helvetica, helvetica neue, ubuntu, roboto, noto, segoe ui, arial, sans-serif
+		}
+
+		.typst-doc {
+			vertical-align: middle;
+		}
+
+		body {
+			max-width: 70ch;
+			margin-left: auto;
+			margin-right: auto;
+		}
+
+		header {
+			padding-top: 1rem;
+		}
+
+		header li {
+			float: right;
+		}
+
+		header li a,
+		header li button {
+			display: block;
+			text-align: center;
+			text-decoration: none;
+			padding-top: 1rem;
+			padding-bottom: 0.2rem;
+			padding-left: 0.5rem;
+		}
+
+		ul {
+			overflow: hidden;
+			padding: 0;
+			margin: 0;
+		}
+
+		.hr-list {
+			margin-left: 0.5rem;
+			margin-right: 0.5rem;
+			border: 0;
+			flex: 1 0 1rem;
+		}
+
+		body li {
+			display: flex;
+			padding-bottom: 0.2rem;
+		}
+
+		a {
+			color: inherit;
+		}
+
+		.dark-mode {
+			background-color: black;
+			color: white;
+                        fill: white;
+		}
+.math-inline{vertical-align: middle;overflow: visible} .math{overflow: visible; width: 100%} img{width:100%}
+	</style>
+	<script>
+		function darkToggle() {
+			var element = document.body;
+			element.classList.toggle("dark-mode");
+		}
+	</script>
+	<meta name="viewport" content="width=device-width" />
+	<title>Home</title>
 </head>
 
-<body style="background-color: rgb(220,218,215); width: 40em; margin-left: auto; margin-right: auto;">
-<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
-<nav style="margin-top: 20%"><hr>Home<br>Posts<br>About<br><hr></nav>"#;
+<body class="dark-mode">
+	<header>
+		<ul>
+			<li style="float: left;"><a style="padding-left:0;" href="index.html"><b>Home</b></a>
+			</li>
+			<li><button onclick="darkToggle()"
+					style="border:none;background-color:inherit; color: inherit; font-size: inherit; font: inherit;">💡</button>
+			</li>
+			<li><a href="about.html">About</a></li>
+		</ul>
+		<hr style="margin-bottom: 1.5rem">
+	</header>
+"#;
 
 const END_ARTICLE: &str = r#"</body></html>"#;
 
@@ -41,7 +125,7 @@ fn math_to_svg(math: &str, output_svg: String) {
 
     // typst requires a file as it cannot take input from stdin
     let mut file = File::create(&typst_file).unwrap();
-    file.write_all(format!("#show math.equation: set text(1.5em)\n{math}").as_bytes())
+    file.write_all(format!("#show math.equation: set text(1.15em)\n{math}").as_bytes())
         .unwrap();
 
     // generate the intermediate svg on a full page
@@ -231,7 +315,7 @@ fn end_tag(tagstack: &mut Vec<OurTag>, tag: TagEnd, output: &mut String) {
                 Some(OurTag::CodeInline) => {
                     *output += r#"</code>"#;
                 }
-                _ => unreachable!(),
+                _ => unreachable!("got tag: {tag:?}"),
             }
         }
         _ => {}
