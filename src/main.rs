@@ -197,12 +197,30 @@ fn parse_article(file: &str) -> String {
 
     let parser = Parser::new(&input);
 
+    let mut string_buf = String::new();
+
     for event in parser {
         match event {
-            Event::Start(t) => start_tag(&mut tagstack, t, &mut output),
-            Event::End(t) => end_tag(&mut tagstack, t, &mut output),
-            Event::Text(t) => text(t, &mut output),
-            _ => {}
+            Event::Text(t) => {
+                string_buf += &t;
+            }
+            Event::SoftBreak => {
+                string_buf.push('\n');
+            }
+            Event::Start(t) => {
+                start_tag(&mut tagstack, t, &mut output);
+                text(string_buf, &mut output);
+                string_buf = String::new();
+            }
+            Event::End(t) => {
+                end_tag(&mut tagstack, t, &mut output);
+                text(string_buf, &mut output);
+                string_buf = String::new();
+            }
+            _ => {
+                text(string_buf, &mut output);
+                string_buf = String::new();
+            }
         }
     }
 
@@ -226,7 +244,7 @@ fn render_math(math: String, is_inline: bool) -> String {
     }
 }
 
-fn text(text: CowStr, output: &mut String) {
+fn text(text: String, output: &mut String) {
     // \$ is replaced by $ when outside of a math block
     // $ denotes a math block
     // it is an inline math block if there are no
@@ -252,7 +270,7 @@ fn text(text: CowStr, output: &mut String) {
                 math_block = !math_block;
             }
             c => {
-                if c == ' ' {
+                if c == ' ' || c == '\n' {
                     last_space = true;
                     if just_entered_math_block {
                         possible_non_inline = true
